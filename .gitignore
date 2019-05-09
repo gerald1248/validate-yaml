@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+validate-yaml
 
 # Test binary, build with `go test -c`
 *.test
