@@ -33,9 +33,13 @@ func main() {
 	for _, arg := range args {
 		err := validateFile(arg, *jsonschema)
 		if err != nil {
-			log(fmt.Sprintf("%s %s", au.Red(au.Bold("ERROR")), au.Bold(err.Error())))
+			log(fmt.Sprintf("%s %s", au.Red(au.Bold("ERROR")), err.Error()))
 			errors++
 		}
 	}
+	if errors == 0 {
+		log(fmt.Sprintf("%s", au.Green(au.Bold("OK"))))
+	}
+
 	os.Exit(errors)
 }

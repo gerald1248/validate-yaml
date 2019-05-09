@@ -14,12 +14,12 @@ func validateBytes(bytes []byte, schemabytes []byte) error {
 
 	err := preflightAsset(&bytes)
 	if err != nil {
-		return errors.New(fmt.Sprintf("input failed preflight check: %v", err))
+		return errors.New(fmt.Sprintf("input failed preflight check: %s", au.Bold(err.Error())))
 	}
 
 	var obj interface{}
 	if err = json.Unmarshal(bytes, &obj); err != nil {
-		return errors.New(fmt.Sprintf("can't unmarshal data: %v", err))
+		return errors.New(fmt.Sprintf("can't unmarshal data: %s", au.Bold(err.Error())))
 	}
 
 	if len(schemabytes) > 0 {
@@ -28,14 +28,18 @@ func validateBytes(bytes []byte, schemabytes []byte) error {
 
 	        result, err := gojsonschema.Validate(schemaLoader, documentLoader)
 	        if err != nil {
-	                return errors.New(fmt.Sprintf("can't validate JSON: %s\n", err.Error()))
+	                return errors.New(fmt.Sprintf("can't validate JSON: %s\n", au.Bold(err.Error())))
 	        }
 
 	        if !result.Valid() {
-	                for _, desc := range result.Errors() {
-	                        log(fmt.Sprintf("=> %s\n", au.Bold(desc)))
+			var report string
+	                for i, desc := range result.Errors() {
+				if i > 0 {
+					report += "; "
+				}
+				report += fmt.Sprintf("%s", au.Bold(desc))
 	                }
-	                return errors.New(fmt.Sprintf("invalid JSON: %s\n", au.Bold(result.Errors()[0])))
+	                return errors.New(fmt.Sprintf("invalid JSON: %s\n", au.Bold(report)))
 	        }
 	}
 
