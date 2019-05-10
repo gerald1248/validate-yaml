@@ -7,8 +7,6 @@ import (
 func TestPreflightAsset(t *testing.T) {
 	//byte slices
 	invalidUtf8 := []byte{0xff, 0xfe, 0xfd}
-	validJson := []byte("{ \"foo\": [\"bar\", \"barfoo\"] }")
-	invalidJson := []byte("{ \"foo\": [\"bar\", \"barfoo\"] } foo")
 	validYaml := []byte("\"foo\": \"bar\"")
 	invalidYaml := []byte("\"foo\":foo:bar: \"bar\"")
 	multilineYaml := []byte(`"foo":
@@ -25,11 +23,6 @@ func TestPreflightAsset(t *testing.T) {
 		t.Error("Must reject invalid UTF8")
 	}
 
-	err = preflightAsset(&invalidJson)
-	if err == nil {
-		t.Error("Must reject invalid JSON")
-	}
-
 	err = preflightAsset(&invalidYaml)
 	if err == nil {
 		t.Error("Must reject invalid YAML")
@@ -39,11 +32,6 @@ func TestPreflightAsset(t *testing.T) {
 	err = preflightAsset(&validYaml)
 	if err != nil {
 		t.Errorf("Must accept valid YAML: %v", err)
-	}
-
-	err = preflightAsset(&validJson)
-	if err != nil {
-		t.Errorf("Must accept valid JSON: %v", err)
 	}
 
 	//in-place conversion must match predefined result

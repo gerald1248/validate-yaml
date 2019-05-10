@@ -5,6 +5,9 @@
   "properties": {
     "foo": {
       "type": "string"
+    },
+    "bar": {
+      "type": "string"
     }
   }
 }
