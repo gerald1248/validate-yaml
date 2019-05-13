@@ -6,15 +6,16 @@ import (
 	"fmt"
 	"io/ioutil"
 	"github.com/xeipuuv/gojsonschema"
+	"strings"
 
 	au "github.com/logrusorgru/aurora"
 )
 
 func validateBytes(bytes []byte, schemabytes []byte) error {
 
-	err := preflightAsset(&bytes)
+	err := preflightAsset(&bytes, false)
 	if err != nil {
-		return errors.New(fmt.Sprintf("input failed preflight check: %s", au.Bold(err.Error())))
+		return errors.New(fmt.Sprintf("can't parse input: %s", au.Bold(err.Error())))
 	}
 
 	var obj interface{}
@@ -52,10 +53,19 @@ func validateFile(path string, jsonschema string) error {
 		return errors.New(fmt.Sprintf("can't read %s: %v", path, au.Bold(err)))
 	}
 
+	// schema processing
 	var schemabytes []byte
 	if len(jsonschema) > 0 {
+		log(fmt.Sprintf("Loading schema %s...", au.Bold(jsonschema)))
 		schemabytes, err = ioutil.ReadFile(jsonschema)
+
+		schemaIsJSON := strings.HasSuffix(jsonschema, ".json")
+		err = preflightAsset(&schemabytes, schemaIsJSON)
+		if err != nil {
+			return errors.New(fmt.Sprintf("can't parse schema: %s", au.Bold(err.Error())))
+		}
 	}
 
+	log(fmt.Sprintf("Validating %s...", au.Bold(path)))
 	return validateBytes(bytes, schemabytes)
 }

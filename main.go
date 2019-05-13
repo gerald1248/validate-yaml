@@ -24,7 +24,7 @@ func main() {
 
 	args := flag.Args()
 	if len(args) == 0 {
-		log(fmt.Sprintf("No input files given"))
+		log(fmt.Sprintf("No input"))
 		flag.Usage()
 		os.Exit(1)
 	}
