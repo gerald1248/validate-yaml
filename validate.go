@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"github.com/xeipuuv/gojsonschema"
+	"os"
 	"strings"
 
 	au "github.com/logrusorgru/aurora"
@@ -53,19 +54,49 @@ func validateFile(path string, jsonschema string) error {
 		return errors.New(fmt.Sprintf("can't read %s: %v", path, au.Bold(err)))
 	}
 
-	// schema processing
-	var schemabytes []byte
-	if len(jsonschema) > 0 {
-		log(fmt.Sprintf("Loading schema %s...", au.Bold(jsonschema)))
-		schemabytes, err = ioutil.ReadFile(jsonschema)
-
-		schemaIsJSON := strings.HasSuffix(jsonschema, ".json")
-		err = preflightAsset(&schemabytes, schemaIsJSON)
-		if err != nil {
-			return errors.New(fmt.Sprintf("can't parse schema: %s", au.Bold(err.Error())))
-		}
+	schemabytes, err := loadSchema(jsonschema)
+	if err != nil {
+		return errors.New(fmt.Sprintf("can't parse schema: %s", au.Bold(err.Error())))
 	}
 
 	log(fmt.Sprintf("Validating %s...", au.Bold(path)))
 	return validateBytes(bytes, schemabytes)
+}
+
+func validateSTDIN(jsonschema string) (bool, error) {
+	var stdin []byte
+	stdinFileInfo, _ := os.Stdin.Stat()
+        if stdinFileInfo.Mode()&os.ModeNamedPipe != 0 {
+                stdin, _ = ioutil.ReadAll(os.Stdin)
+	}
+
+	// empty slice is fine so handle in caller
+	if len(stdin) == 0 {
+		return true, nil
+	}
+
+	schemabytes, err := loadSchema(jsonschema)
+        if err != nil {
+                return false, errors.New(fmt.Sprintf("can't parse schema: %s", au.Bold(err.Error())))
+        }
+
+        log("Validating stream...")
+        return false, validateBytes(stdin, schemabytes)
+}
+
+func loadSchema(jsonschema string) ([]byte, error) {
+        var schemabytes []byte
+	var err error
+        if len(jsonschema) > 0 {
+                log(fmt.Sprintf("Loading schema %s...", au.Bold(jsonschema)))
+                schemabytes, err = ioutil.ReadFile(jsonschema)
+
+                schemaIsJSON := strings.HasSuffix(jsonschema, ".json")
+                err = preflightAsset(&schemabytes, schemaIsJSON)
+                if err != nil {
+                        return nil, errors.New(fmt.Sprintf("can't parse schema: %s", au.Bold(err.Error())))
+                }
+        }
+
+	return schemabytes, nil
 }
