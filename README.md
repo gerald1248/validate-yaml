@@ -6,8 +6,8 @@ In fact, both schema and input files may be YAML documents.
 
 |               |JSON|YAML
 |---------------|----|----
-|schema document|[x]|[x]|
-|input document |[x]|[x]|
+|schema document|✅  |✅
+|input document |✅  |✅
 
 ## Usage
 ```
