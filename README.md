@@ -15,6 +15,8 @@ $ validate-yaml -h
 USAGE validate-yaml [-schema=PATH] FILE [FILE]
   -schema string
     	path to JSON schema definition
-$ validate-yaml --schema=schema.json valid.json
+$ validate-yaml --schema=schema.json valid.yaml
+Loading schema schema.json...
+Validating valid.yaml...
 OK
 ```
