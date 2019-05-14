@@ -43,6 +43,8 @@ func validateBytes(bytes []byte, schemabytes []byte) error {
 	                }
 	                return errors.New(fmt.Sprintf("invalid JSON: %s\n", au.Bold(report)))
 	        }
+	} else {
+		log(fmt.Sprintf("%s: checking syntax only", au.Cyan(au.Bold("WARN"))))
 	}
 
 	return nil

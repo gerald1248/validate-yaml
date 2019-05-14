@@ -20,3 +20,13 @@ Loading schema schema.json...
 Validating valid.yaml...
 OK
 ```
+
+Alternatively, you could enter:
+
+```
+$ cat valid.yaml | validate-yaml --schema=schema.yaml
+Loading schema schema.yaml...
+Validating stream...
+OK
+```
+
