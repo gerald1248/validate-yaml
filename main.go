@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	au "github.com/logrusorgru/aurora"
 	"os"
 	"path/filepath"
-	au "github.com/logrusorgru/aurora"
 )
 
 func main() {

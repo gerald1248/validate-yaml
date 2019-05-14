@@ -6,52 +6,70 @@ import (
 
 func TestPreflightAsset(t *testing.T) {
 	//byte slices
-	invalidUtf8 := []byte{0xff, 0xfe, 0xfd}
-	validJSON := []byte("{ \"foo\": [\"bar\", \"barfoo\"] }")
-	invalidJSON := []byte("foo { \"foo\": [\"bar\", \"barfoo\"] } foo")
-	validYaml := []byte("\"foo\": \"bar\"")
-	invalidYaml := []byte("\"foo\":foo:bar: \"bar\"")
-	multilineYaml := []byte(`"foo":
+	invalidUTF8 := []byte{0xff, 0xfe, 0xfd}
+	validJSON := []byte(`{ "foo": ["bar", "barfoo"] }`)
+	invalidJSON := []byte(`foo { "foo": ["bar", "barfoo"] } foo`)
+	validYAML := []byte(`"foo": "bar"`)
+	invalidYAML := []byte(`"foo":foo:bar: "bar"`)
+	multilineYAML := []byte(`"foo":
 - "bar"
 - "foobar"
 - "boofar"
 - "roobar"
 `)
-	multilineYamlConverted := []byte("{\"foo\":[\"bar\",\"foobar\",\"boofar\",\"roobar\"]}")
+	multilineYAMLConverted := []byte(`{"foo":["bar","foobar","boofar","roobar"]}`)
+	validJSONConverted := []byte(`{ "foo": ["bar", "barfoo"] }`)
 
-	//expect error
-	err := preflightAsset(&invalidUtf8, false)
-	if err == nil {
-		t.Error("Must reject invalid UTF8")
+	var tests = []struct {
+		description string
+		data        []byte
+		isJSON      bool
+		success     bool
+	}{
+		{"invalid_utf8", invalidUTF8, false, false},
+		{"valid_json", validJSON, false, true},
+		{"invalid_json", invalidJSON, false, false},
+		{"valid_yaml", validYAML, false, true},
+		{"invalid_yaml", invalidYAML, false, false},
+		{"multiline_yaml", multilineYAML, false, true},
 	}
 
-	err = preflightAsset(&invalidJSON, false)
-	if err == nil {
-		t.Error("Must reject invalid JSON")
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			err := preflightAsset(&test.data, test.isJSON)
+			success := (err == nil)
+			if success != test.success {
+				expectation := "succeed"
+				if test.success == false {
+					expectation = "fail"
+				}
+				t.Errorf("test expected to %s", expectation)
+			}
+		})
 	}
 
-	err = preflightAsset(&invalidYaml, false)
-	if err == nil {
-		t.Error("Must reject invalid YAML")
+	var comparisons = []struct {
+		description string
+		dataIn      []byte
+		dataOut     []byte
+                isJSON      bool
+		success     bool
+	}{
+		{"multiline_yaml_conversion", multilineYAML, multilineYAMLConverted, false, true},
+		{"json_conversion", validJSON, validJSONConverted, true, true},
 	}
 
-	//expect success
-	err = preflightAsset(&validYaml, false)
-	if err != nil {
-		t.Errorf("Must accept valid YAML: %v", err)
-	}
+	for _, test := range comparisons {
+		t.Run(test.description, func(t *testing.T) {
+			err := preflightAsset(&test.dataIn, test.isJSON)
+			if err != nil && test.success {
+				t.Errorf("test expected to run")
+			}
 
-	err = preflightAsset(&validJSON, false)
-	if err != nil {
-		t.Errorf("Must accept valid JSON: %v", err)
-	}
-
-	//in-place conversion must match predefined result
-	err = preflightAsset(&multilineYaml, false)
-	if err != nil {
-		t.Errorf("Must accept valid multiline YAML: %v", err)
-	}
-	if string(multilineYaml) != string(multilineYamlConverted) {
-		t.Errorf("Expected %s to match %s", multilineYaml, multilineYamlConverted)
+			// quick comparison
+			if string(test.dataIn) != string(test.dataOut) {
+				t.Errorf("Expected %s to match %s", test.dataIn, test.dataOut)
+			}
+		})
 	}
 }
