@@ -52,7 +52,7 @@ func TestPreflightAsset(t *testing.T) {
 		description string
 		dataIn      []byte
 		dataOut     []byte
-                isJSON      bool
+		isJSON      bool
 		success     bool
 	}{
 		{"multiline_yaml_conversion", multilineYAML, multilineYAMLConverted, false, true},

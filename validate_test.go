@@ -103,33 +103,33 @@ func TestValidateFile(t *testing.T) {
 		t.Errorf("must reject invalid instance document")
 	}
 	var tests = []struct {
-                description string
-                input       string
-                schema      string
-                success     bool
-        }{
-                {"valid_yaml", validYAML, schemaJSON, true},
-                {"invalid_yaml", invalidYAML, schemaJSON, false},
-                {"valid_json", validJSON, schemaJSON, true},
-                {"invalid_json", invalidJSON, schemaJSON, false},
-                {"noschema_ok", validYAML, "", true},
-                {"noschema_broken", brokenJSON, "", false},
-                {"schema_yaml", validYAML, schemaYAML, true},
-                {"invalid_schema_json", validYAML, invalidSchemaJSON, false},
-                {"broken_json", brokenJSON, schemaJSON, false},
+		description string
+		input       string
+		schema      string
+		success     bool
+	}{
+		{"valid_yaml", validYAML, schemaJSON, true},
+		{"invalid_yaml", invalidYAML, schemaJSON, false},
+		{"valid_json", validJSON, schemaJSON, true},
+		{"invalid_json", invalidJSON, schemaJSON, false},
+		{"noschema_ok", validYAML, "", true},
+		{"noschema_broken", brokenJSON, "", false},
+		{"schema_yaml", validYAML, schemaYAML, true},
+		{"invalid_schema_json", validYAML, invalidSchemaJSON, false},
+		{"broken_json", brokenJSON, schemaJSON, false},
 	}
 
-        for _, test := range tests {
-                t.Run(test.description, func(t *testing.T) {
-                        err := validateFile(test.input, test.schema)
-                        success := (err == nil)
-                        if success != test.success {
-                                expectation := "succeed"
-                                if test.success == false {
-                                        expectation = "fail"
-                                }
-                                t.Errorf("test expected to %s", expectation)
-                        }
-                })
-        }
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			err := validateFile(test.input, test.schema)
+			success := (err == nil)
+			if success != test.success {
+				expectation := "succeed"
+				if test.success == false {
+					expectation = "fail"
+				}
+				t.Errorf("test expected to %s", expectation)
+			}
+		})
+	}
 }

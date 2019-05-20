@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/xeipuuv/gojsonschema"
 	"io/ioutil"
 	"os"
 	"strings"
+
+	"github.com/xeipuuv/gojsonschema"
 
 	au "github.com/logrusorgru/aurora"
 )
@@ -16,12 +17,12 @@ func validateBytes(bytes []byte, schemabytes []byte) error {
 
 	err := preflightAsset(&bytes, false)
 	if err != nil {
-		return errors.New(fmt.Sprintf("can't parse input: %s", au.Bold(err.Error())))
+		return fmt.Errorf("can't parse input: %s", au.Bold(err.Error()))
 	}
 
 	var obj interface{}
 	if err = json.Unmarshal(bytes, &obj); err != nil {
-		return errors.New(fmt.Sprintf("can't unmarshal data: %s", au.Bold(err.Error())))
+		return fmt.Errorf("can't unmarshal data: %s", au.Bold(err.Error()))
 	}
 
 	if len(schemabytes) > 0 {
@@ -30,7 +31,7 @@ func validateBytes(bytes []byte, schemabytes []byte) error {
 
 		result, err := gojsonschema.Validate(schemaLoader, documentLoader)
 		if err != nil {
-			return errors.New(fmt.Sprintf("can't validate JSON: %s\n", au.Bold(err.Error())))
+			return fmt.Errorf("can't validate JSON: %s", au.Bold(err.Error()))
 		}
 
 		if !result.Valid() {
@@ -41,7 +42,7 @@ func validateBytes(bytes []byte, schemabytes []byte) error {
 				}
 				report += fmt.Sprintf("%s", au.Bold(desc))
 			}
-			return errors.New(fmt.Sprintf("invalid JSON: %s\n", au.Bold(report)))
+			return fmt.Errorf("invalid JSON: %s", au.Bold(report))
 		}
 	} else {
 		log(fmt.Sprintf("%s: checking syntax only", au.Cyan(au.Bold("WARN"))))
@@ -53,12 +54,12 @@ func validateBytes(bytes []byte, schemabytes []byte) error {
 func validateFile(path string, jsonschema string) error {
 	bytes, err := ioutil.ReadFile(path)
 	if err != nil {
-		return errors.New(fmt.Sprintf("can't read %s: %v", path, au.Bold(err)))
+		return fmt.Errorf("can't read %s: %v", path, au.Bold(err))
 	}
 
 	schemabytes, err := loadSchema(jsonschema)
 	if err != nil {
-		return errors.New(fmt.Sprintf("can't parse schema: %s", au.Bold(err.Error())))
+		return fmt.Errorf("can't parse schema: %s", au.Bold(err.Error()))
 	}
 
 	log(fmt.Sprintf("Validating %s...", au.Bold(path)))
@@ -79,7 +80,7 @@ func validateSTDIN(jsonschema string) (bool, error) {
 
 	schemabytes, err := loadSchema(jsonschema)
 	if err != nil {
-		return false, errors.New(fmt.Sprintf("can't parse schema: %s", au.Bold(err.Error())))
+		return false, fmt.Errorf("can't parse schema: %s", au.Bold(err.Error()))
 	}
 
 	log("Validating stream...")
