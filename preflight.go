@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"unicode/utf8"
 
@@ -13,11 +12,11 @@ import (
 // applies only to file-based processing; the server only accepts JSON
 func preflightAsset(a *[]byte, isJSON bool) error {
 	if len(*a) == 0 {
-		return errors.New("input must not be empty")
+		return fmt.Errorf("input must not be empty")
 	}
 
 	if utf8.Valid(*a) == false {
-		return errors.New("input must be valid UTF-8")
+		return fmt.Errorf("input must be valid UTF-8")
 	}
 
 	// attempt to parse JSON first
