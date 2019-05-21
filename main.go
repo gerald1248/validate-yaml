@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -29,31 +30,40 @@ func main() {
 func realMain(schema string, args []string) int {
 	errors := 0
 
-	if len(args) == 0 {
-		// attempt STDIN handling
-		isEmpty, err := validateSTDIN(schema)
-		if isEmpty { // special case 1: no input
-			log(fmt.Sprintf("No input"))
-			flag.Usage()
-			return 1
-		} else if err != nil { // special case 2: error
-			log(fmt.Sprintf("%s %s", au.Red(au.Bold("ERROR")), err.Error()))
+	// handle possible STDIN input first
+	// distinguish from "no input"
+	hasNamedPipe := false
+	info, _ := os.Stdin.Stat()
+	if info.Mode()&os.ModeNamedPipe != 0 {
+		hasNamedPipe = true
+	}
+
+	if !hasNamedPipe && len(args) == 0 {
+		log.Println("No input")
+		flag.Usage()
+		return 1
+	}
+
+	if hasNamedPipe {
+		err := validateSTDIN(os.Stdin, schema)
+		if err != nil {
+			log.Println(fmt.Sprintf("%s %s", au.Red(au.Bold("ERROR")), err.Error()))
 			errors++
 		}
-	} else {
-		// iterate over files; return number of invalid files
-		for _, arg := range args {
-			err := validateFile(arg, schema)
-			if err != nil {
-				log(fmt.Sprintf("%s %s", au.Red(au.Bold("ERROR")), err.Error()))
-				errors++
-			}
+	}
+
+	// iterate over files; return number of invalid files
+	for _, arg := range args {
+		err := validateFile(arg, schema)
+		if err != nil {
+			log.Println(fmt.Sprintf("%s %s", au.Red(au.Bold("ERROR")), err.Error()))
+			errors++
 		}
 	}
 
 	// report success only if all files/streams have passed
 	if errors == 0 {
-		log(fmt.Sprintf("%s", au.Green(au.Bold("OK"))))
+		log.Println(fmt.Sprintf("%s", au.Green(au.Bold("OK"))))
 	}
 
 	return errors

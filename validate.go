@@ -2,9 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"strings"
 
@@ -45,59 +45,54 @@ func validateBytes(bytes []byte, schemabytes []byte) error {
 			return fmt.Errorf("invalid JSON: %s", au.Bold(report))
 		}
 	} else {
-		log(fmt.Sprintf("%s: checking syntax only", au.Cyan(au.Bold("WARN"))))
+		log.Println(fmt.Sprintf("%s: checking syntax only", au.Cyan(au.Bold("WARN"))))
 	}
 
 	return nil
 }
 
-func validateFile(path string, jsonschema string) error {
+func validateFile(path string, schema string) error {
 	bytes, err := ioutil.ReadFile(path)
 	if err != nil {
 		return fmt.Errorf("can't read %s: %v", path, au.Bold(err))
 	}
 
-	schemabytes, err := loadSchema(jsonschema)
+	schemabytes, err := loadSchema(schema)
 	if err != nil {
 		return fmt.Errorf("can't parse schema: %s", au.Bold(err.Error()))
 	}
 
-	log(fmt.Sprintf("Validating %s...", au.Bold(path)))
+	log.Println(fmt.Sprintf("Validating %s...", au.Bold(path)))
 	return validateBytes(bytes, schemabytes)
 }
 
-func validateSTDIN(jsonschema string) (bool, error) {
+func validateSTDIN(file *os.File, schema string) error {
 	var stdin []byte
-	stdinFileInfo, _ := os.Stdin.Stat()
-	if stdinFileInfo.Mode()&os.ModeNamedPipe != 0 {
-		stdin, _ = ioutil.ReadAll(os.Stdin)
-	}
-
-	// empty slice is fine so handle in caller
-	if len(stdin) == 0 {
-		return true, nil
-	}
-
-	schemabytes, err := loadSchema(jsonschema)
+	stdin, err := ioutil.ReadAll(file)
 	if err != nil {
-		return false, fmt.Errorf("can't parse schema: %s", au.Bold(err.Error()))
+		return fmt.Errorf("can't read input stream: %s", au.Bold(err.Error()))
 	}
 
-	log("Validating stream...")
-	return false, validateBytes(stdin, schemabytes)
+	schemabytes, err := loadSchema(schema)
+	if err != nil {
+		return fmt.Errorf("can't parse schema: %s", au.Bold(err.Error()))
+	}
+
+	log.Println("Validating stream...")
+	return validateBytes(stdin, schemabytes)
 }
 
-func loadSchema(jsonschema string) ([]byte, error) {
+func loadSchema(schema string) ([]byte, error) {
 	var schemabytes []byte
 	var err error
-	if len(jsonschema) > 0 {
-		log(fmt.Sprintf("Loading schema %s...", au.Bold(jsonschema)))
-		schemabytes, err = ioutil.ReadFile(jsonschema)
+	if len(schema) > 0 {
+		log.Println(fmt.Sprintf("Loading schema %s...", au.Bold(schema)))
+		schemabytes, err = ioutil.ReadFile(schema)
 
-		schemaIsJSON := strings.HasSuffix(jsonschema, ".json")
+		schemaIsJSON := strings.HasSuffix(schema, ".json")
 		err = preflightAsset(&schemabytes, schemaIsJSON)
 		if err != nil {
-			return nil, errors.New(fmt.Sprintf("can't parse schema: %s", au.Bold(err.Error())))
+			return nil, fmt.Errorf("can't parse schema: %s", au.Bold(err.Error()))
 		}
 	}
 

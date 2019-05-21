@@ -1,7 +1,12 @@
 package main
 
 import (
+	"fmt"
+	"log"
+	"os"
 	"testing"
+
+	au "github.com/logrusorgru/aurora"
 )
 
 func TestValidateBytes(t *testing.T) {
@@ -122,6 +127,63 @@ func TestValidateFile(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
 			err := validateFile(test.input, test.schema)
+			success := (err == nil)
+			if success != test.success {
+				expectation := "succeed"
+				if test.success == false {
+					expectation = "fail"
+				}
+				t.Errorf("test expected to %s", expectation)
+			}
+		})
+	}
+}
+
+func TestValidateSTDIN(t *testing.T) {
+	var tests = []struct {
+		description string
+		filename    string
+		schema      string
+		success     bool
+	}{
+		{"valid_stdin", "testdata/valid.yaml", "testdata/schema.yaml", true},
+		{"invalid_stdin", "testdata/invalid.yaml", "testdata/schema.yaml", false},
+		{"broken_stdin", "testdata/broken.yaml", "", false},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			file, err := os.Open(test.filename)
+			if err != nil {
+				log.Println(fmt.Sprintf("can't create mock STDIN stream: %s", au.Bold(err.Error())))
+			}
+			err = validateSTDIN(file, test.schema)
+			success := (err == nil)
+			if success != test.success {
+				expectation := "succeed"
+				if test.success == false {
+					expectation = "fail"
+				}
+				t.Errorf("test expected to %s", expectation)
+			}
+			file.Close()
+		})
+	}
+}
+
+func TestLoadSchema(t *testing.T) {
+	var tests = []struct {
+		description string
+		schema      string
+		success     bool
+	}{
+		{"valid_schema", "testdata/schema.yaml", true},
+		{"broken_schema", "testdata/broken.yaml", false},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			_, err := loadSchema(test.schema)
 			success := (err == nil)
 			if success != test.success {
 				expectation := "succeed"

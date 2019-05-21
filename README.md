@@ -1,5 +1,7 @@
 # validate-yaml
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/gerald1248/validate-yaml)](https://goreportcard.com/report/github.com/gerald1248/validate-yaml)
+
 `validate-yaml` performs JSON Schema validation for YAML files. Under the hood, validation is always against a JSON schema. The YAML input is converted to JSON and then checked against the schema.
 
 In fact, both schema and input files may be YAML documents.
